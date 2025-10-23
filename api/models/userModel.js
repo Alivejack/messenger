@@ -16,8 +16,7 @@ const userSchema = new mongoose.Schema({
   },
   photo: {
     type: String,
-    default:
-      'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
+    default: 'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
   },
   password: {
     type: String,
@@ -56,11 +55,18 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-userSchema.methods.correctPassword = async function (
-  candidatePassword,
-  hashedPassword
-) {
-  return bcrypt.compare(candidatePassword, hashedPassword);
+userSchema.methods.correctPassword = async function (candidatePassword, hashedPassword) {
+  return await bcrypt.compare(candidatePassword, hashedPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (jwtTimeStapm) {
+  if (this.passwordChangedAt) {
+    const passwordChangedAtMili = this.passwordChangedAt.getTime() / 1000;
+
+    return jwtTimeStapm < passwordChangedAtMili;
+  }
+
+  return false;
 };
 
 const User = mongoose.model('User', userSchema);
