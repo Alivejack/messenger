@@ -22,12 +22,6 @@ app.use(
   })
 );
 
-app.get('/', (req, res) => {
-  res.status(200).json({
-    message: 'yeahhh',
-  });
-});
-
 io.on('connection', (socket) => {
   console.log('🟢 a user connected');
 
