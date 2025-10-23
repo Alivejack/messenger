@@ -3,6 +3,10 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 
+const userRouter = require('./routes/userRoutes');
+const globalErrorHandler = require('./controllers/errorController');
+const AppError = require('./utils/appError');
+
 const app = express();
 const server = http.createServer(app);
 
@@ -36,4 +40,12 @@ io.on('connection', (socket) => {
   });
 });
 
+// Routes Middlewares
+app.use('/api/v1/users', userRouter);
+
+app.use((req, res, next) => {
+  next(new AppError(`cant find ${req.originalUrl} on the server !`, 404));
+});
+
+app.use(globalErrorHandler);
 module.exports = server;
