@@ -1,8 +1,9 @@
 const express = require('express');
-const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const morgan = require('morgan');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const userRouter = require('./routes/userRoutes');
 const globalErrorHandler = require('./controllers/errorController');
@@ -20,7 +21,14 @@ const io = new Server(server, {
   },
 });
 
+// 1) Global Middlewares
+
+// Development logging
 app.use(morgan('dev'));
+
+// Body parser
+app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 app.use(
   cors({
@@ -43,7 +51,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Routes Middlewares
+// 2) Routes Middlewares
 app.use('/api/v1/users', userRouter);
 
 app.use((req, res, next) => {
