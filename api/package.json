@@ -4,7 +4,8 @@
   "description": "back side of the messenger",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "prod": "cross-env NODE_ENV=production nodemon server.js"
   },
   "author": "Younes Ebrahimzade",
   "license": "ISC",
@@ -13,8 +14,13 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
+    "morgan": "^1.10.1",
     "socket.io": "^4.8.1",
     "validator": "^13.15.15"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

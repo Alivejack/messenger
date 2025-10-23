@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
+const morgan = require('morgan');
 
 const userRouter = require('./routes/userRoutes');
 const globalErrorHandler = require('./controllers/errorController');
@@ -18,6 +19,8 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
+app.use(morgan('dev'));
 
 app.use(
   cors({
@@ -48,4 +51,5 @@ app.use((req, res, next) => {
 });
 
 app.use(globalErrorHandler);
+
 module.exports = server;
