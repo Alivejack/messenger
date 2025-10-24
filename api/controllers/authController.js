@@ -1,3 +1,5 @@
+const { promisify } = require('util');
+
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
@@ -13,9 +15,7 @@ const createSendtoken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
   const cookieOption = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
+    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
     httpOnly: true,
     sameSite: 'none',
     secure: true,
@@ -51,11 +51,42 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide email and password', 400));
   }
 
-  const user = User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   createSendtoken(user, 200, res);
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  // 1) Check if user has the token
+  let token;
+  if (req.cookies.jwt) token = req.cookies.jwt;
+
+  if (!token) {
+    return new AppError('You are not logged in! Please log in to get access.', 401);
+  }
+
+  // 2) Verify token
+  const decoded = await promisify(jwt.verify(token, process.env.JWT_SECRET));
+
+  // 3) Check if user still exists
+  const currentUser = await User.findOne(decoded.id);
+  if (!currentUser) {
+    return new AppError(
+      new AppError('The user belonging to this token does no longer exist.', 401)
+    );
+  }
+
+  // 4) Check if user changed his passwored after login
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return new AppError('User recently changed password! Please log in again.', 401);
+  }
+
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = currentUser;
+  res.locals.user = currentUser;
+  next();
 });
