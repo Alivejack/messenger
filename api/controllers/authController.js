@@ -90,3 +90,14 @@ exports.protect = catchAsync(async (req, res, next) => {
   res.locals.user = currentUser;
   next();
 });
+
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+  });
+
+  res.status(200).json({ status: true, message: 'User logged out successfully' });
+};
